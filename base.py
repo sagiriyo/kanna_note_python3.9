@@ -591,9 +591,7 @@ class StringResources(Enum):
     SKILL_ACTION_TYPE_DESC_37_HEAL = "每秒回复 {} HP"
     SKILL_ACTION_TYPE_DESC_38_ACTION = "，持续施放动作({})"
     SKILL_ACTION_TYPE_DESC_42_2 = "[{}] 秒内受到伤害时，以 {} 的概率使用动作({})"
-    SKILL_ACTION_TYPE_DESC_42_14 = (
-        "[{}] 秒内受到无法行动、击飞、拉近伤害时，以 {} 的概率使用{}"
-    )
+    SKILL_ACTION_TYPE_DESC_42_14 = "[{}] 秒内受到无法行动、击飞、拉近伤害时，以 {} 的概率使用{}，动作生效期间免疫无法行动、击飞、拉近效果"
     SKILL_ACTION_TYPE_DESC_44 = "战斗开始 [{}] 秒后入场"
     SKILL_ACTION_TYPE_DESC_45 = "技能计数加 [1] {}"
     SKILL_ACTION_TYPE_DESC_46_1 = "对{}造成最大HP {} 伤害"
