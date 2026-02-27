@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from ..download import get_equipment_icon
 from ..util import is_text_chinese, split_text
@@ -51,13 +51,16 @@ def get_equipment_effect(info: UniqueEquipInfo):
 
 
 async def draw_single_unique_equipment(
-    unique_info: UniqueEquipInfo, level: int
+    unique_info: UniqueEquipInfo, level: int, sp_info: Optional[UniqueEquipInfo] = None
 ) -> Image.Image:
     equip_icon_path = await get_equipment_icon(unique_info.equipment_id)
     equip_icon = Image.open(equip_icon_path).convert("RGBA").resize((100, 100))
     effect_list = get_equipment_effect(unique_info)
     description = split_text(unique_info.description.replace("\\n", ""), 20)
-    height = 130 + 30 * len(description) + 35 * len(effect_list) // 2
+    height = 140 + 30 * len(description) + 35 * len(effect_list) // 2
+    if sp_info:
+        sp_effect_list = get_equipment_effect(sp_info)
+        height += 60 + 35 * len(sp_effect_list) // 2
     base = Image.new("RGBA", (WIDTH, height), "#fef8f8")
     draw = ImageDraw.Draw(base)
     font_path = (
@@ -82,8 +85,7 @@ async def draw_single_unique_equipment(
         ImageFont.truetype(FilePath.font_ms_bold.value, 25),
     )
     draw.multiline_text((MARGIN, height), "\n".join(description), "#000000", font)
-    height += 25 * len(description) + 10
-    height += 10
+    height += 25 * len(description) + 10 + 10
     for i, effect in enumerate(effect_list):
         if i % 2 == 0:
             draw_text_with_base(
@@ -122,17 +124,67 @@ async def draw_single_unique_equipment(
                 anchor="rt",
             )
             height += 35
+    if sp_info:
+        height += 30
+        draw.text(
+            (WIDTH // 2 - MARGIN, height),
+            "SP属性加成",
+            "#a5366f",
+            ImageFont.truetype(FilePath.font_ms_bold.value, 25),
+            anchor="mt",
+        )
+        height += 30
+        for i, effect in enumerate(sp_effect_list):
+            if i % 2 == 0:
+                draw_text_with_base(
+                    draw,
+                    effect[0],
+                    MARGIN,
+                    height,
+                    font_cn,
+                    "#ffffff",
+                    "#a5366f",
+                    margin=10,
+                )
+                draw.text(
+                    (WIDTH // 2 - MARGIN, height + 5),
+                    str(effect[1]),
+                    "#000000",
+                    font_cn,
+                    anchor="rt",
+                )
+            else:
+                draw_text_with_base(
+                    draw,
+                    effect[0],
+                    WIDTH // 2,
+                    height,
+                    font_cn,
+                    "#ffffff",
+                    "#a5366f",
+                    margin=10,
+                )
+                draw.text(
+                    (WIDTH - MARGIN, height + 5),
+                    str(effect[1]),
+                    "#000000",
+                    font_cn,
+                    anchor="rt",
+                )
+                height += 35
 
     return base
 
 
 async def draw_unique_equipment(
-    unique_info: List[UniqueEquipInfo], level_list: List[int]
+    unique_info: List[UniqueEquipInfo],
+    level_list: List[int],
+    sp_info: Optional[UniqueEquipInfo] = None,
 ) -> Image.Image:
 
     img_list = [
-        await draw_single_unique_equipment(info, level)
-        for info, level in zip(unique_info, level_list)
+        await draw_single_unique_equipment(info, level, sp_info if i == 0 else None)
+        for i, (info, level) in enumerate(zip(unique_info, level_list))
     ]
 
     return merge_pic(img_list, "vertical")

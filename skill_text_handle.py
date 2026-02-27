@@ -1,6 +1,5 @@
-from math import e
 import re
-from typing import List
+from typing import Dict, List
 
 from .table import EnemyParameter, SkillData, UnitSkillData
 from .model import ShowCoe, SkillActionData, SkillActionText
@@ -25,6 +24,8 @@ def get_skill_level(skill_data: UnitSkillData, parameter: EnemyParameter) -> dic
         skill_data.sp_skill_1 != 1064101 or skill_data.main_skill_evolution_1 != 1065012
     ):
         skill_dict[skill_data.main_skill_evolution_1] = parameter.main_skill_lv_1
+    if skill_data.main_skill_evolution_1_pro:
+        skill_dict[skill_data.main_skill_evolution_1_pro] = parameter.main_skill_lv_1
     if skill_data.main_skill_2:
         skill_dict[skill_data.main_skill_2] = parameter.main_skill_lv_2
     if skill_data.main_skill_evolution_2:
@@ -69,7 +70,7 @@ def get_skill_level(skill_data: UnitSkillData, parameter: EnemyParameter) -> dic
 
 
 def get_skill_ids(skill: UnitSkillData):
-    skill_dict = {
+    skill_dict: Dict[str, List[int]] = {
         "normal": [1],
         "sp": [],
     }
@@ -89,6 +90,9 @@ def get_skill_ids(skill: UnitSkillData):
     ):  # 日服雪菲
         skill_dict["normal"].append(skill.main_skill_evolution_1)
         skill_type_dict[skill.main_skill_evolution_1] = "技能1+"
+    if skill.main_skill_evolution_1_pro:
+        skill_dict["normal"].append(skill.main_skill_evolution_1_pro)
+        skill_type_dict[skill.main_skill_evolution_1_pro] = "技能1++"
 
     if skill.main_skill_2:
         skill_dict["normal"].append(skill.main_skill_2)
@@ -160,6 +164,9 @@ def get_skill_ids(skill: UnitSkillData):
     if skill.sp_skill_evolution_1:
         skill_dict["sp"].append(skill.sp_skill_evolution_1)
         skill_type_dict[skill.sp_skill_evolution_1] = "SP技能1+"
+    if skill.sp_skill_evolution_1_pro:
+        skill_dict["sp"].append(skill.sp_skill_evolution_1_pro)
+        skill_type_dict[skill.sp_skill_evolution_1_pro] = "SP技能1++"
     if skill.sp_skill_2:
         skill_dict["sp"].append(skill.sp_skill_2)
         skill_type_dict[skill.sp_skill_2] = "SP技能2"
@@ -1965,6 +1972,8 @@ class ActionHandler:
         elif self.action.action_detail_1 == 4:
             self.tag = StringResources.get("skill_action_tp_recovery_fix")
         elif self.action.action_detail_1 in [2, 3]:
+            self.tag = StringResources.get("skill_action_tp_reduce")
+        else:
             self.tag = StringResources.get("unknown")
         return f"{self.get_target()}{self.tag} {value}"
 
@@ -2486,6 +2495,7 @@ class ActionHandler:
             "skill_action_type_desc_129",
             self.get_target(),
             self.get_value_text(1, v1=self.action.action_value_1, v2=0.0, percent="%"),
+            int(self.action.action_value_3),
             self.get_time_text(2, self.action.action_value_2),
         )
 

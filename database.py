@@ -1,3 +1,4 @@
+import contextlib
 from ast import List
 import datetime
 from functools import wraps
@@ -52,6 +53,7 @@ from .table import (
     TowerEnemyParameter,
     TowerSchedule,
     AbyssSchedule,
+    ExUniqueEquipment1,
     UniqueEquipmentEnhanceData,
     UnitAttackPattern,
     UnitData,
@@ -62,7 +64,6 @@ from .table import (
     UnitSkillDataRF,
     UnitTalent,
     UnitUniqueEquipment,
-    UnitUniqueEquip,
     UniqueEquipEnhanceRate,
     UniqueEquipmentData,
     StoryDetail,
@@ -153,10 +154,34 @@ class PCRDatabase:
         self.max_unique_equip_lv = [1, 1]
 
     async def init(self):
+        await self.ensure_skill_columns()  # 等国服更新就可以删除了
         self.all_chaeacters = await self.get_all_units_list()
         self.ex_character = await self.get_ex_units_list()
         self.max_unique_equip_lv[0] = await self.get_max_unique_equip_lv(1)
         self.max_unique_equip_lv[1] = await self.get_max_unique_equip_lv(2)
+
+    @session
+    async def ensure_skill_columns(self, session: AsyncSession):
+        """确保 unit_skill_data 表包含可选的技能列，兼容不同版本的数据库"""
+        with contextlib.suppress(Exception):
+            # 检查列是否存在
+            result = await session.execute(text("PRAGMA table_info(unit_skill_data)"))
+            columns = {row[1] for row in result.fetchall()}
+
+            # 添加缺失的列
+            if "main_skill_evolution_1_pro" not in columns:
+                await session.execute(
+                    text(
+                        "ALTER TABLE unit_skill_data ADD COLUMN main_skill_evolution_1_pro INTEGER DEFAULT 0"
+                    )
+                )
+
+            if "sp_skill_evolution_1_pro" not in columns:
+                await session.execute(
+                    text(
+                        "ALTER TABLE unit_skill_data ADD COLUMN sp_skill_evolution_1_pro INTEGER DEFAULT 0"
+                    )
+                )
 
     @session
     async def get_ex_units_list(self, session: AsyncSession) -> list[int]:
@@ -402,16 +427,8 @@ class PCRDatabase:
                 UnitUniqueEquipment.equip_id == UniqueEquipEnhanceRate.equipment_id,
                 isouter=True,
             )
-            .join(
-                UnitUniqueEquip,
-                UnitUniqueEquip.equip_id == UniqueEquipEnhanceRate.equipment_id,
-                isouter=True,
-            )
             .where(
-                or_(
-                    UnitUniqueEquipment.unit_id == unit_id,
-                    UnitUniqueEquip.unit_id == unit_id,
-                ),
+                UnitUniqueEquipment.unit_id == unit_id,
                 UniqueEquipEnhanceRate.min_lv == min_lv + 1,
             )
         )
@@ -431,18 +448,12 @@ class PCRDatabase:
         self, session: AsyncSession, unit_id: int, lv: int = 1, slot: int = 1
     ):
 
-        # 构建 UNIT-EQUIPMENT 关系的子查询
-        unit_equip_subquery = union_all(
-            select(UnitUniqueEquipment.unit_id, UnitUniqueEquipment.equip_id),
-            select(UnitUniqueEquip.unit_id, UnitUniqueEquip.equip_id),
-        ).alias("r")
-
         # 计算属性值
         lv_minus_1 = coalesce(lv - 1, 0)  # 确保 :lv 为空时不会报错
 
         query = (
             select(
-                unit_equip_subquery.c.unit_id,
+                UnitUniqueEquipment.unit_id,
                 UniqueEquipmentData.equipment_id,
                 UniqueEquipmentData.equipment_name,
                 UniqueEquipmentData.description,
@@ -515,13 +526,8 @@ class PCRDatabase:
                 literal(0).label("isOtherLimitAction"),  # 固定值
             )
             .join(
-                UnitUniqueEquip,
-                unit_equip_subquery.c.equip_id == UnitUniqueEquip.equip_id,
-                isouter=True,
-            )
-            .join(
                 UniqueEquipmentData,
-                unit_equip_subquery.c.equip_id == UniqueEquipmentData.equipment_id,
+                UnitUniqueEquipment.equip_id == UniqueEquipmentData.equipment_id,
                 isouter=True,
             )
             .join(
@@ -531,14 +537,9 @@ class PCRDatabase:
             )
             .where(
                 UniqueEquipmentData.equipment_id is not None,  # 确保装备存在
-                or_(
-                    unit_equip_subquery.c.unit_id == unit_id,
-                    UnitUniqueEquip.unit_id == unit_id,
-                ),
+                UnitUniqueEquipment.unit_id == unit_id,
                 UniqueEquipEnhanceRate.min_lv <= 2,
-                or_(
-                    slot == 0, UniqueEquipmentData.equipment_id % 10 == slot
-                ),  # 处理 slot 过滤
+                UniqueEquipmentData.equipment_id % 10 == slot,  # 处理 slot 过滤
             )
         )
         result = await session.execute(query)
@@ -549,6 +550,72 @@ class PCRDatabase:
 
         else:
             return None
+
+    @session
+    async def get_unique_equip_1sp_info(
+        self, session: AsyncSession, unit_id: int
+    ) -> Optional[UniqueEquipInfo]:
+        """
+        获取专武1sp信息
+
+        Args:
+            unit_id: 角色编号
+
+        Returns:
+            UniqueEquipInfo对象，如果不存在则返回None
+        """
+        query = (
+            select(
+                UnitData.unit_id,
+                UniqueEquipmentData.equipment_id,
+                UniqueEquipmentData.equipment_name,
+                UniqueEquipmentData.description,
+                ExUniqueEquipment1.hp,
+                ExUniqueEquipment1.attack.label("atk"),
+                ExUniqueEquipment1.magic_attack.label("magic_str"),
+                ExUniqueEquipment1.defense.label("def"),
+                ExUniqueEquipment1.magic_defense.label("magic_def"),
+                ExUniqueEquipment1.critical.label("physical_critical"),
+                ExUniqueEquipment1.magic_critical,
+                ExUniqueEquipment1.wave_hp_recovery,
+                ExUniqueEquipment1.wave_energy_recovery,
+                ExUniqueEquipment1.dodge,
+                ExUniqueEquipment1.penetration.label("physical_penetrate"),
+                ExUniqueEquipment1.magic_penetration.label("magic_penetrate"),
+                ExUniqueEquipment1.life_steal,
+                ExUniqueEquipment1.hp_recovery_rate,
+                ExUniqueEquipment1.energy_recovery_rate,
+                ExUniqueEquipment1.energy_reduce_rate,
+                ExUniqueEquipment1.accuracy,
+                literal(0).label("isTpLimitAction"),
+            )
+            .join(
+                UnitUniqueEquipment,
+                UnitUniqueEquipment.equip_id == ExUniqueEquipment1.equipment_id,
+                isouter=True,
+            )
+            .join(
+                UniqueEquipmentData,
+                UniqueEquipmentData.equipment_id == ExUniqueEquipment1.equipment_id,
+                isouter=True,
+            )
+            .join(
+                UnitData,
+                UnitData.unit_id == UnitUniqueEquipment.unit_id,
+                isouter=True,
+            )
+            .where(
+                ExUniqueEquipment1.equipment_id.isnot(None),
+                UnitData.unit_id == unit_id,
+            )
+        )
+
+        result = await session.execute(query)
+        if result := result.first():
+            return UniqueEquipInfo(
+                **dict(zip(UniqueEquipInfo.__annotations__.keys(), result))
+            )
+        return None
 
     @session
     async def get_chara_story_status(self, session: AsyncSession, unit_id: int):

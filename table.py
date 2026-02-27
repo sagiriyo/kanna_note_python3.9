@@ -82,6 +82,7 @@ class UnitUniqueEquipment(PCRModel, table=True):
 
 
 class UnitUniqueEquip(PCRModel, table=True):
+    # 已经废弃，使用UnitUniqueEquipment代替
     __tablename__ = "unit_unique_equip"
     unit_id: int = Field(primary_key=True)
     equip_slot: int = Field(primary_key=True)
@@ -281,6 +282,7 @@ class UnitSkillData(PCRModel, table=True):
 
     # 主技能进化 (Main Skill Evolutions)
     main_skill_evolution_1: int
+    main_skill_evolution_1_pro: Optional[int] = 0
     main_skill_evolution_2: int
 
     # EX 技能 (EX Skills)
@@ -307,6 +309,7 @@ class UnitSkillData(PCRModel, table=True):
     # SP 技能进化 (Special Skill Evolutions)
     sp_skill_evolution_1: int
     sp_skill_evolution_2: int
+    sp_skill_evolution_1_pro: Optional[int] = 0
 
 
 class SkillData(PCRModel, table=True):
@@ -1208,3 +1211,29 @@ class UnitTalent(PCRModel, table=True):
     setting_id: int = Field(primary_key=True)
     unit_id: int
     talent_id: int
+
+
+class ExUniqueEquipment1(PCRModel, table=True):
+    __tablename__ = "ex_unique_equipment_1"
+
+    equipment_id: int = Field(primary_key=True)
+
+    dodge: int
+    magic_critical: int
+    hp: int
+    magic_attack: int
+    wave_energy_recovery: int
+    attack: int
+    penetration: int
+    unknown_2: int
+    wave_hp_recovery: int
+    hp_recovery_rate: int
+    accuracy: int
+    life_steal: int
+    magic_penetration: int
+    critical: int
+    defense: int
+    energy_recovery_rate: int
+    unknown_1: int
+    magic_defense: int
+    energy_reduce_rate: int

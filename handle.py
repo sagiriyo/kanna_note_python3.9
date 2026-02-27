@@ -173,12 +173,7 @@ async def get_chara_unique_equip(
         "normal": [],
         "sp": [],
     }
-    if level1 <= GameSetting.tp_limit_level.value:
-        equip_list = [
-            await data.get_unique_equip_info(id_, level1, 1),
-            await data.get_unique_equip_info(id_, level2 + 1, 2),
-        ]
-    else:
+    if level1 > GameSetting.tp_limit_level.value:
         tp_bouns_attr = await data.get_unique_equip_bonus(
             id_,
             level1 - GameSetting.tp_limit_level.value,
@@ -197,36 +192,47 @@ async def get_chara_unique_equip(
             level1 = (
                 GameSetting.other_limit_level.value
             )  # 带回避相关属性，仅计算300级之前的属性
-        equip_list: List[UniqueEquipInfo] = [
-            await data.get_unique_equip_info(id_, level1, 1),
-            await data.get_unique_equip_info(id_, level2 + 1, 2),
-        ]
-        if equip_list[0]:
-            if tp_bouns_attr:
-                equip_list[0].isTpLimitAction = 1
-                equip_list[0].add(tp_bouns_attr)
-            if other_bouns_attr:
-                equip_list[0].isOtherLimitAction = 1
-                equip_list[0].add(other_bouns_attr)
+    equip_list: List[UniqueEquipInfo] = [
+        await data.get_unique_equip_info(id_, level1, 1),
+        await data.get_unique_equip_info(id_, level2 + 1, 2),
+    ]
+    try:
+        sp_equip_info = await data.get_unique_equip_1sp_info(id_)
+    except Exception as e:
+        sp_equip_info = None
+    if equip_list[0]:
+        if tp_bouns_attr:
+            equip_list[0].isTpLimitAction = 1
+            equip_list[0].add(tp_bouns_attr)
+        if other_bouns_attr:
+            equip_list[0].isOtherLimitAction = 1
+            equip_list[0].add(other_bouns_attr)
 
-            if skill_info.main_skill_1:
-                skills["normal"].append(skill_info.main_skill_1)
-            if skill_info.main_skill_evolution_1:
-                skills["normal"].append(skill_info.main_skill_evolution_1)
-            if skill_info.sp_skill_1:
-                skills["sp"].append(skill_info.sp_skill_1)
-            if skill_info.sp_skill_evolution_1:
-                skills["sp"].append(skill_info.sp_skill_evolution_1)
-        if equip_list[1]:
-            if skill_info.main_skill_2:
-                skills["normal"].append(skill_info.main_skill_2)
-            if skill_info.main_skill_evolution_2:
-                skills["normal"].append(skill_info.main_skill_evolution_2)
-            if skill_info.sp_skill_2:
-                skills["sp"].append(skill_info.sp_skill_2)
-            if skill_info.sp_skill_evolution_2:
-                skills["sp"].append(skill_info.sp_skill_evolution_2)
+        if skill_info.main_skill_1:
+            skills["normal"].append(skill_info.main_skill_1)
+        if skill_info.main_skill_evolution_1:
+            skills["normal"].append(skill_info.main_skill_evolution_1)
+        if skill_info.main_skill_evolution_1_pro:
+            skills["normal"].append(skill_info.main_skill_evolution_1_pro)
+
+        if skill_info.sp_skill_1:
+            skills["sp"].append(skill_info.sp_skill_1)
+        if skill_info.sp_skill_evolution_1:
+            skills["sp"].append(skill_info.sp_skill_evolution_1)
+        if skill_info.sp_skill_evolution_1_pro:
+            skills["sp"].append(skill_info.sp_skill_evolution_1_pro)
+    if equip_list[1]:
+        if skill_info.main_skill_2:
+            skills["normal"].append(skill_info.main_skill_2)
+        if skill_info.main_skill_evolution_2:
+            skills["normal"].append(skill_info.main_skill_evolution_2)
+        if skill_info.sp_skill_2:
+            skills["sp"].append(skill_info.sp_skill_2)
+        if skill_info.sp_skill_evolution_2:
+            skills["sp"].append(skill_info.sp_skill_evolution_2)
+
     equip_list = [equip for equip in equip_list if equip]
+
     if not equip_list:
         return "暂时没有更新该角色的专武数据"
 
@@ -256,10 +262,14 @@ async def get_chara_unique_equip(
         skill_action_dict = {
             k: [convert2simplified(q) for q in v] for k, v in skill_action_dict.items()
         }
+        if sp_equip_info:
+            sp_equip_info = convert2simplified(sp_equip_info)
 
     img_list = [
         await draw_char_icon(id_, 500),
-        await draw_unique_equipment(equip_list, [orginal_level1, orginal_level2]),
+        await draw_unique_equipment(
+            equip_list, [orginal_level1, orginal_level2], sp_equip_info
+        ),
         await draw_all_skill(
             skills, skill_type_dict, skill_data_dict, skill_action_dict
         ),

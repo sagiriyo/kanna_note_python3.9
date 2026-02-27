@@ -673,9 +673,7 @@ class StringResources(Enum):
     SKILL_ACTION_TYPE_DESC_123_1 = "受到的伤害减少{}"
     SKILL_ACTION_TYPE_DESC_125 = "使{}进入 [{}] 状态（持有标记时，不会成为攻击目标）"
     SKILL_ACTION_TYPE_DESC_128 = "使{}受到的持续伤害的间隔和时间延长 [{}] 倍{}"
-    SKILL_ACTION_TYPE_DESC_129 = (
-        "使{}受到的 {} 伤害转化为持续伤害{}；该持续伤害不回复 TP"
-    )
+    SKILL_ACTION_TYPE_DESC_129 = ">使{}受到的 {} 伤害转化为持续伤害，伤害间隔 [1] 秒，共计触发 [{}] 次{}；该持续伤害不回复 TP"
     SKILL_ACTION_TYPE_DESC_130 = "使{}受到伤害时，按物理/魔法防御中较高的防御计算伤害"
     SKILL_ACTION_TYPE_DESC_132 = "使{}造成的伤害{}{}{}{}"
     SKILL_ACTION_TYPE_DESC_133 = (
