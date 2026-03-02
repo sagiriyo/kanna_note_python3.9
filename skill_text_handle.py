@@ -698,7 +698,7 @@ class ActionHandler:
             self.action.action_detail_1, StringResources.get("unknown")
         )
         # 增加或减少
-        effect_type = self.get_effect_type(self.action.action_detail_2)
+        effect_type = get_effect_type(self.action.action_detail_2)
         # 倍数计算公式
         value_text = f"<{self.action.action_value_1} * {count_type}>"
         return StringResources.get(
@@ -2516,7 +2516,7 @@ class ActionHandler:
         limit = StringResources.get(
             "skill_action_damage_limit_int", self.action.action_value_3
         )
-        effect_type = self.get_effect_type(self.action.action_detail_1)
+        effect_type = get_effect_type(self.action.action_detail_1)
         time = self.get_time_text(4, self.action.action_value_4)
         return StringResources.get(
             "skill_action_type_desc_132",
