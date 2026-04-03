@@ -248,7 +248,7 @@ async def get_chara_unique_equip(
             action_ids=(
                 [
                     getattr(skill_data_dict[skill], f"action_{i}")
-                    for i in range(1, 10 + 1)
+                    for i in range(1, 20 + 1)
                 ]
                 if skill_data_dict[skill]
                 else []
@@ -323,7 +323,7 @@ async def get_chara_skill(id_: int, type_: str = None, data: PCRDatabase = None)
             action_ids=(
                 [
                     getattr(skill_data_dict[skill], f"action_{i}")
-                    for i in range(1, 10 + 1)
+                    for i in range(1, 20 + 1)
                 ]
                 if skill_data_dict[skill]
                 else []
@@ -409,7 +409,7 @@ async def get_enemy_skill(
             action_ids=(
                 [
                     getattr(skill_data_dict[skill], f"action_{i}")
-                    for i in range(1, 10 + 1)
+                    for i in range(1, 20 + 1)
                 ]
                 if skill_data_dict[skill]
                 else []

@@ -408,6 +408,16 @@ def get_skill_depend_dict(skill_data: SkillData):
         skill_data.action_8: skill_data.depend_action_8,
         skill_data.action_9: skill_data.depend_action_9,
         skill_data.action_10: skill_data.depend_action_10,
+        skill_data.action_11: skill_data.depend_action_11,
+        skill_data.action_12: skill_data.depend_action_12,
+        skill_data.action_13: skill_data.depend_action_13,
+        skill_data.action_14: skill_data.depend_action_14,
+        skill_data.action_15: skill_data.depend_action_15,
+        skill_data.action_16: skill_data.depend_action_16,
+        skill_data.action_17: skill_data.depend_action_17,
+        skill_data.action_18: skill_data.depend_action_18,
+        skill_data.action_19: skill_data.depend_action_19,
+        skill_data.action_20: skill_data.depend_action_20,
     }
 
 

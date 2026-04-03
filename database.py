@@ -183,6 +183,21 @@ class PCRDatabase:
                         "ALTER TABLE unit_skill_data ADD COLUMN sp_skill_evolution_1_pro INTEGER DEFAULT 0"
                     )
                 )
+
+            # 兼容旧版本数据库，添加 action_11 到 action_20 和 depend_action_11 到 depend_action_20 列
+            result = await session.execute(text("PRAGMA table_info(skill_data)"))
+            columns = {row[1] for row in result.fetchall()}
+            for num in range(11, 21):
+                if f"action_{num}" not in columns:
+                    await session.execute(
+                        text(f"ALTER TABLE skill_data ADD COLUMN action_{num} INTEGER")
+                    )
+                if f"depend_action_{num}" not in columns:
+                    await session.execute(
+                        text(
+                            f"ALTER TABLE skill_data ADD COLUMN depend_action_{num} INTEGER"
+                        )
+                    )
         except Exception as e:
             traceback.print_exc()
             print(f"Error ensuring skill columns: {e}")

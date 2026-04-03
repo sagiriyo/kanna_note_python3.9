@@ -182,12 +182,14 @@ async def draw_single_skill(
             + 20 * len(introduce)
             + 5  # 加点空隙
             + 25
-            * sum(len(split_text(action.action_desc, skill_text_max)) for action in desc)
+            * sum(
+                len(split_text(action.action_desc, skill_text_max)) for action in desc
+            )
             + 10 * len(desc)
             - 10
         )
     else:
-        height =70
+        height = 70
 
     base = Image.new("RGBA", (WIDTH, height), "#fef8f8")
     draw = ImageDraw.Draw(base)
@@ -230,18 +232,18 @@ async def draw_single_skill(
 
     temp_width = 0
     for tag in tags:
-            draw_text_with_base(
-                draw,
-                tag,
-                MARGIN + temp_width,
-                height,
-                font_cn,
-                "#ffffff",
-                "#a5366f",
-                margin=10,
-            )
-            x, _ = get_text_size(tag, font_cn)
-            temp_width += x + 15
+        draw_text_with_base(
+            draw,
+            tag,
+            MARGIN + temp_width,
+            height,
+            font_cn,
+            "#ffffff",
+            "#a5366f",
+            margin=10,
+        )
+        x, _ = get_text_size(tag, font_cn)
+        temp_width += x + 15
     height += 25
     draw.multiline_text(
         (MARGIN, height),

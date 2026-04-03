@@ -333,6 +333,16 @@ class SkillData(PCRModel, table=True):
     action_8: Optional[int] = None
     action_9: Optional[int] = None
     action_10: Optional[int] = None
+    action_11: Optional[int] = None
+    action_12: Optional[int] = None
+    action_13: Optional[int] = None
+    action_14: Optional[int] = None
+    action_15: Optional[int] = None
+    action_16: Optional[int] = None
+    action_17: Optional[int] = None
+    action_18: Optional[int] = None
+    action_19: Optional[int] = None
+    action_20: Optional[int] = None
 
     # 依赖技能动作
     depend_action_1: Optional[int] = None
@@ -345,6 +355,16 @@ class SkillData(PCRModel, table=True):
     depend_action_8: Optional[int] = None
     depend_action_9: Optional[int] = None
     depend_action_10: Optional[int] = None
+    depend_action_11: Optional[int] = None
+    depend_action_12: Optional[int] = None
+    depend_action_13: Optional[int] = None
+    depend_action_14: Optional[int] = None
+    depend_action_15: Optional[int] = None
+    depend_action_16: Optional[int] = None
+    depend_action_17: Optional[int] = None
+    depend_action_18: Optional[int] = None
+    depend_action_19: Optional[int] = None
+    depend_action_20: Optional[int] = None
 
     # 额外字段
     description: Optional[str] = None
