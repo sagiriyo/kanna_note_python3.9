@@ -1,7 +1,6 @@
-import contextlib
-from ast import List
 import datetime
 from functools import wraps
+import traceback
 from typing import (
     Any,
     Awaitable,
@@ -41,6 +40,8 @@ from .table import (
     RedeemUnit,
     SecretDungeonSchedule,
     SevenEnemyParameter,
+    SevenEventSetting,
+    SevenSchedule,
     ShioriEnemyParameter,
     ShioriEventList,
     SkillAction,
@@ -163,7 +164,7 @@ class PCRDatabase:
     @session
     async def ensure_skill_columns(self, session: AsyncSession):
         """确保 unit_skill_data 表包含可选的技能列，兼容不同版本的数据库"""
-        with contextlib.suppress(Exception):
+        try:
             # 检查列是否存在
             result = await session.execute(text("PRAGMA table_info(unit_skill_data)"))
             columns = {row[1] for row in result.fetchall()}
@@ -182,6 +183,9 @@ class PCRDatabase:
                         "ALTER TABLE unit_skill_data ADD COLUMN sp_skill_evolution_1_pro INTEGER DEFAULT 0"
                     )
                 )
+        except Exception as e:
+            traceback.print_exc()
+            print(f"Error ensuring skill columns: {e}")
 
     @session
     async def get_ex_units_list(self, session: AsyncSession) -> list[int]:
@@ -1002,7 +1006,7 @@ class PCRDatabase:
 
     @session
     async def get_all_events(self, session: AsyncSession, limit: int = 10):
-        # 子查询 1：合并 hatsune 和 shiori 的事件记录
+        # 子查询 1：合并 hatsune, shiori 和 seven 的事件记录
         hatsune_sub = select(
             HatsuneSchedule.event_id,
             case(
@@ -1020,7 +1024,16 @@ class PCRDatabase:
             ShioriEventList.end_time,
         )
 
-        event_union = union_all(hatsune_sub, shiori_sub).subquery("event")
+        seven_sub = select(
+            SevenSchedule.event_id,
+            SevenSchedule.event_id.label(
+                "original_event_id"
+            ),  # seven没有original_event_id，使用event_id
+            SevenSchedule.start_time,
+            SevenSchedule.end_time,
+        )
+
+        event_union = union_all(hatsune_sub, shiori_sub, seven_sub).subquery("event")
 
         # e 子查询
         detail_sub = (
@@ -1041,13 +1054,19 @@ class PCRDatabase:
                 event_union.c.original_event_id,
                 event_union.c.start_time,
                 event_union.c.end_time,
-                func.coalesce(EventStoryData.title, "").label("title"),
+                func.coalesce(SevenEventSetting.title, EventStoryData.title, "").label(
+                    "title"
+                ),
                 func.coalesce(detail_sub.c.unit_ids, "").label("unit_ids"),
             )
             .outerjoin(
                 EventStoryData,
                 EventStoryData.story_group_id
                 == ((event_union.c.original_event_id % 10000) + 5000),
+            )
+            .outerjoin(
+                SevenEventSetting,
+                SevenEventSetting.event_id == event_union.c.event_id,
             )
             .outerjoin(
                 detail_sub, detail_sub.c.story_group_id == EventStoryData.story_group_id

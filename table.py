@@ -1237,3 +1237,32 @@ class ExUniqueEquipment1(PCRModel, table=True):
     unknown_1: int
     magic_defense: int
     energy_reduce_rate: int
+
+
+class SevenSchedule(PCRModel, table=True):
+    __tablename__ = "seven_schedule"
+    event_id: int = Field(primary_key=True)
+    teaser_time: str
+    start_time: str
+    end_time: str
+    page_title_cv_info: str
+    page_title_cv_2_info: str
+
+
+class SevenEventSetting(PCRModel, table=True):
+    __tablename__ = "seven_event_setting"
+    event_id: int = Field(primary_key=True)
+    title: str
+    sub_title: str
+    introduction: str
+    introduction_2: str
+    introduction_3: str
+    introduction_4: str
+    introduction_5: str
+    introduction_6: str
+    introduction_7: str
+    introduction_8: str
+    introduction_9: str
+    introduction_10: str
+    boss_enemy_id: int
+    boss_unit_id: int
