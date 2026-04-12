@@ -298,18 +298,24 @@ def get_barrier_type(v1):
     # 作用
     if v1 in [1, 2, 5]:
         f = StringResources.get("skill_shield_no_effect")
+    elif v1 in [3, 4, 6]:
+        f = StringResources.get("skill_barrier_defense")
+    elif v1 in [7, 8, 9]:
+        f = StringResources.get("skill_barrier_both")
     else:
-        f = StringResources.get("skill_shield_defense")
+        f = StringResources.get("unknown")
 
     # 类型
-    if v1 in [1, 3]:
+    if v1 in [1, 3, 7]:
         type_ = StringResources.get("physical")
-    elif v1 in [2, 4]:
+    elif v1 in [2, 4, 8]:
         type_ = StringResources.get("magic")
-    else:
+    elif v1 in [5, 6, 9]:
         type_ = StringResources.get("skill_all")
+    else:
+        type_ = StringResources.get("unknown")
 
-    return StringResources.get("skill_shield", f, type_) if v1 <= 6 else "UNKNOWN"
+    return StringResources.get("skill_barrier_detail", f, type_)
 
 
 def init_other_limit():
@@ -356,6 +362,18 @@ def get_effect_type(value: int) -> str:
         1: StringResources.get("skill_action_type_desc_additive"),
         2: StringResources.get("skill_action_type_desc_subtract"),
     }.get(value, StringResources.get("unknown"))
+
+
+def get_talent_type(value: int) -> str:
+    talent = {
+        1: StringResources.get("skill_target_fire"),
+        2: StringResources.get("skill_target_water"),
+        3: StringResources.get("skill_target_wind"),
+        4: StringResources.get("skill_target_light"),
+        5: StringResources.get("skill_target_dark"),
+    }.get(value, StringResources.get("none"))
+
+    return f"『{talent}{StringResources.get('character')}』" if talent else ""
 
 
 def get_status(value, action_value_3):
@@ -726,9 +744,14 @@ class ActionHandler:
             1: StringResources.get("skill_physical"),
             2: StringResources.get("skill_magic"),
             3: StringResources.get("skill_all"),
+            4: StringResources.get("skill_physical"),
+            5: StringResources.get("skill_magic"),
         }.get(self.action.action_detail_1, "UNKNOWN")
         value = self.get_value_text(
-            1, self.action.action_value_1, self.action.action_value_2, percent="%"
+            1,
+            self.action.action_value_1,
+            self.action.action_value_2,
+            percent=self.get_percent(),
         )
         time = self.get_time_text(
             3, self.action.action_value_3, self.action.action_value_4
@@ -896,13 +919,22 @@ class ActionHandler:
         value = self.get_value_text(
             1, self.action.action_value_1, self.action.action_value_2, 0.0, percent="%"
         )
-        type_ = {
-            1: StringResources.get("skill_buff"),
-            3: StringResources.get("skill_buff"),
-            2: StringResources.get("skill_debuff"),
-            10: StringResources.get("skill_barrier"),
-            20: StringResources.get("skill_barrier"),
-        }.get(self.action.action_detail_1, "UNKNOWN")
+        if self.action.action_detail_1 == 1:
+            type_ = StringResources.get("skill_buff")
+        elif self.action.action_detail_1 == 2:
+            type_ = StringResources.get("skill_debuff")
+        elif self.action.action_detail_1 == 3:
+            type_ = StringResources.get("skill_buff_without_field")
+        elif self.action.action_detail_1 == 10:
+            type_ = StringResources.get("skill_barrier")
+        elif 10 < self.action.action_detail_1 < 20:
+            type_ = get_barrier_type(self.action.action_detail_1 % 10)
+        elif self.action.action_detail_1 == 20:
+            type_ = get_buff_text(self.action.action_value_4) + StringResources.get(
+                "skill_effect"
+            )
+        else:
+            type_ = "UNKNOWN"
 
         return StringResources.get(
             "skill_action_type_desc_49", value, self.get_target(), type_
@@ -1006,11 +1038,14 @@ class ActionHandler:
         time = self.get_time_text(
             3, self.action.action_value_3, self.action.action_value_4
         )
-        aura = get_buff_text(
-            self.action.action_detail_1, value, self.action.action_value_7
-        )
+        aura = get_buff_text(self.action.action_detail_1, value)
+        talent = get_talent_type(self.action.action_value_7)
         return self.get_target() + StringResources.get(
-            "skill_action_type_desc_field", self.action.action_value_5, aura, time
+            "skill_action_type_desc_field",
+            self.action.action_value_5,
+            aura,
+            time,
+            talent,
         )
 
     # 39：持续伤害领域展开
@@ -2808,7 +2843,7 @@ class ActionHandler:
                 else ""
             )
         elif self.action.action_type == SkillActionType.DAMAGE_REDUCE.value:
-            return "%"
+            return "%" if (self.action.action_detail_1 <= 3) else ""
         elif self.action.action_type == SkillActionType.ACTION_DOT.value:
             return "%" if self.action.action_detail_1 == 10 else ""
         elif self.action.action_type == SkillActionType.DOT.value:
