@@ -410,10 +410,10 @@ class StringResources(Enum):
     SKILL_TARGET_ASSIGNMENT_1 = "敌人"
     SKILL_TARGET_ASSIGNMENT_2 = "己方"
     SKILL_TARGET_ASSIGNMENT_3 = "敌人和己方"
-    SKILL_BARRIER_NO_EFFECT = "无效"
-    SKILL_BARRIER_DEFENSE = "吸收"
-    SKILL_BARRIER_BOTH = "无效和吸收"
-    SKILL_BARRIER_DETAIL = "{}{}伤害的护盾"
+    SKILL_SHIELD_NO_EFFECT = "无效"
+    SKILL_SHIELD_DEFENSE = "吸收"
+    SKILL_SHIELD_BOTH = "无效和吸收"
+    SKILL_SHIELD_DETAIL = "{}{}伤害的护盾"
     SKILL_ACTION = "动作"
     SKILL_ACTION_D = "动作({})"
     SKILL_EFFECT_TIME = "，持续 {} 秒"
@@ -754,15 +754,17 @@ STORY_STATE_DICT = {
 
 class Color(Enum):
     gold = "#dfb340"
-    red = "#a5366f"
+    red = "#dc143c"
     green = "#7aa57b"
     orange = "#ed6c51"
     primary = "#a5366f"
+    light_blue = "#66a3ff"
     black = "#000000"
     white = "#ffffff"
     purple = "#b476cd"
     pink = "#f8b1d7"
     blue = "#3b5998"
+    grey = "#888888"
 
 
 class CalendarEventType(Enum):
@@ -965,3 +967,87 @@ class TalentType(Enum):
             return cls.dark
         else:
             return None
+
+
+class UnitRoleType(Enum):
+    ATTACKER = "攻击"
+    BREAKER = "破坏"
+    BUFFER = "增益"
+    DEBUFFER = "减益"
+    BOOSTER = "加速"
+    HEALER = "治疗"
+    TANK = "坦克"
+    JAMMER = "干扰"
+
+    UNKNOWN = "未知"
+
+    @property
+    def name(self) -> str:
+        return self.value
+
+    @classmethod
+    def get(cls, key: int) -> "UnitRoleType":
+        return next((item for item in cls if item.value == key), cls.UNKNOWN)
+
+    @property
+    def color(self) -> str:
+        if self == UnitRoleType.ATTACKER:
+            return Color.red.value
+        elif self == UnitRoleType.BREAKER:
+            return Color.gold.value
+        elif self == UnitRoleType.BUFFER:
+            return Color.orange.value
+        elif self == UnitRoleType.DEBUFFER:
+            return Color.blue.value
+        elif self == UnitRoleType.BOOSTER:
+            return Color.light_blue.value
+        elif self == UnitRoleType.HEALER:
+            return Color.green.value
+        elif self == UnitRoleType.TANK:
+            return Color.purple.value
+        elif self == UnitRoleType.JAMMER:
+            return Color.pink.value
+        else:
+            return Color.black.value
+
+    @property
+    def index(self) -> int:
+        if self == UnitRoleType.ATTACKER:
+            return 1
+        elif self == UnitRoleType.BREAKER:
+            return 2
+        elif self == UnitRoleType.BUFFER:
+            return 3
+        elif self == UnitRoleType.DEBUFFER:
+            return 4
+        elif self == UnitRoleType.BOOSTER:
+            return 5
+        elif self == UnitRoleType.HEALER:
+            return 6
+        elif self == UnitRoleType.TANK:
+            return 7
+        elif self == UnitRoleType.JAMMER:
+            return 8
+        else:
+            return 0
+
+    @classmethod
+    def get(cls, index: int) -> "UnitRoleType":
+        if index == 1:
+            return cls.ATTACKER
+        elif index == 2:
+            return cls.BREAKER
+        elif index == 3:
+            return cls.BUFFER
+        elif index == 4:
+            return cls.DEBUFFER
+        elif index == 5:
+            return cls.BOOSTER
+        elif index == 6:
+            return cls.HEALER
+        elif index == 7:
+            return cls.TANK
+        elif index == 8:
+            return cls.JAMMER
+        else:
+            return cls.UNKNOWN
