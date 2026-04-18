@@ -297,11 +297,11 @@ def get_atk_type(action_detail_1: int) -> str:
 def get_barrier_type(v1):
     # 作用
     if v1 in [1, 2, 5]:
-        f = StringResources.get("skill_shield_no_effect")
+        f = StringResources.get("skill_barrier_no_effect")
     elif v1 in [3, 4, 6]:
-        f = StringResources.get("skill_shield_defense")
+        f = StringResources.get("skill_barrier_defense")
     elif v1 in [7, 8, 9]:
-        f = StringResources.get("skill_shield_both")
+        f = StringResources.get("skill_barrier_both")
     else:
         f = StringResources.get("unknown")
 
@@ -315,7 +315,7 @@ def get_barrier_type(v1):
     else:
         type_ = StringResources.get("unknown")
 
-    return StringResources.get("skill_shield_detail", f, type_)
+    return StringResources.get("skill_barrier_detail", f, type_)
 
 
 def init_other_limit():
