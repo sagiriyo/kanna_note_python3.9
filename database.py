@@ -5,12 +5,11 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Concatenate,
     Optional,
-    ParamSpec,
     TypeVar,
     overload,
 )
+from typing_extensions import Concatenate, ParamSpec
 
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
